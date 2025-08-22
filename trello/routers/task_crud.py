@@ -14,13 +14,13 @@ def ifexists(task_name: str, session: Session) -> bool:
     return existing_task is not None
 
 class taskCreate(BaseModel):
-    id: int
+
     task_name: Annotated[str, Field(..., description="Task Name", max_length=100)]
     task_status: Annotated[str, Field(..., description="Task Status", max_length=50)]
 
 class taskUpdate(BaseModel):
-    task_name: Annotated[Optional[str], Field(description="Task Name", max_length=100, default=None)]
-    task_status: Annotated[Optional[str], Field(description="Task Status", max_length=50, default=None)]
+    task_name: Annotated[Optional[str], Field(description="Task Name", max_length=100, default=None, example="Learn FastAPI")]
+    task_status: Annotated[Optional[str], Field(description="Task Status", max_length=50, default=None , example="pending , done , in-progress")]
 
 def insert_initial_data():
     with Session(engine) as session:
