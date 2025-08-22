@@ -1,12 +1,14 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlmodel import Session, select
 from trello.dbConnection import create_db_and_tables, get_session, engine
-from trello.models import Task
+from trello.models import Task, Project
 from pydantic import BaseModel, Field
 from typing import Annotated, Optional
 
 app = FastAPI()
 
+
+#Check if task with same name exists
 def ifexists(task_name: str, session: Session) -> bool:
     existing_task = session.exec(
         select(Task).where(Task.task_name == task_name)
@@ -17,6 +19,7 @@ def taskExistsById(task_id: int, session: Session) -> bool:
     existing_task = session.get(Task, task_id)
     return existing_task is not None
 
+#Task Schema for Create and Update operations
 class taskCreate(BaseModel):
     id: int
     task_name: Annotated[str, Field(..., description="Task Name", max_length=100)]
@@ -31,7 +34,7 @@ def on_startup():
     create_db_and_tables()
     # insert_initial_data()
 
-
+#Task CRUD Operations
 def insert_initial_data():
     with Session(engine) as session:
         count = session.exec(select(Task)).all()
@@ -85,9 +88,6 @@ def create(task: taskCreate, session: Session = Depends(get_session)):
     session.refresh(new_task)
     return new_task
 
-
-
-
 @app.put("/updateTask/{task_id}", response_model=Task)
 def update(task_id: int, task: taskUpdate, session: Session = Depends(get_session)):
 
@@ -120,3 +120,48 @@ def delete(task_id: int, session: Session = Depends(get_session)):
     session.commit()
     return {"message": "Task deleted successfully"}
 
+@app.post("/createProject")
+def create_project(project: Project, session: Session = Depends(get_session)):
+    session.add(project)
+    session.commit()
+    session.refresh(project)
+    return project
+
+
+@app.get("/projects")
+def get_projects(session: Session = Depends(get_session)):
+    projects = session.exec(select(Project)).all()
+    return projects
+
+
+@app.get("/projects/{id}")
+def get_project(id: int, session: Session = Depends(get_session)):
+    project = session.get(Project, id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return project
+
+
+@app.put("/updateProject/{id}")
+def update_project(id: int, updated: Project, session: Session = Depends(get_session)):
+    project = session.get(Project, id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    project.project_name = updated.project_name
+    project.project_description = updated.project_description
+    session.add(project)
+    session.commit()
+    session.refresh(project)
+    return project
+
+
+@app.delete("/deleteProject/{id}")
+def delete_project(id: int, session: Session = Depends(get_session)):
+    project = session.get(Project, id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    session.delete(project)
+    session.commit()
+    return {"message": "Project deleted successfully"}
