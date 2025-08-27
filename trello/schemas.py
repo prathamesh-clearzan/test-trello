@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
 
@@ -57,3 +57,37 @@ class TaskRead(TaskBase):
     project_id: int
     class Config:
         from_attributes = True
+
+
+class UserBase(BaseModel):
+    username: str
+    email: Optional[EmailStr] = None
+
+
+class UserCreate(UserBase):
+    password: str
+
+
+class UserRead(UserBase):
+    id: int
+    role: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+# -------- Auth / Token --------
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class TokenData(BaseModel):
+    user_id: Optional[int] = None
+    username: Optional[str] = None

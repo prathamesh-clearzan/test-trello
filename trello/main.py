@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from sqlmodel import Session, select
 from trello.dbConnection import engine, drop_tables, create_db_and_tables
-from trello.routers import project_crud, task_crud, category_crud
+from trello.routers import project_crud, task_crud, category_crud, auth as auth_router
 from trello.models import Project, Category, Task
 
 app = FastAPI(title="Trello Clone API")
@@ -44,3 +44,4 @@ def on_startup():
 app.include_router(project_crud.router)
 app.include_router(task_crud.router)
 app.include_router(category_crud.router)
+app.include_router(auth_router.router)

@@ -60,7 +60,7 @@ def delete_category(category_id: int, session: Session = Depends(get_session)):
     return {"detail": "Category deleted successfully"}
 
 
-# Get Tasks by Category
+
 @router.get("/{category_id}/tasks", response_model=list[TaskRead])
 def get_tasks_by_category(category_id: int, session: Session = Depends(get_session)):
     return session.exec(select(Task).where(Task.category_id == category_id)).all()
